@@ -1,6 +1,6 @@
 {
   "name": "claude-notifications",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Send notifications via Gotify when Claude Code reaches stopping points on remote workstations. Built-in user isolation.",
   "author": {
     "name": "Jason Hsieh",
