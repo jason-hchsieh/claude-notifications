@@ -1,0 +1,10 @@
+{
+  "name": "claude-notifications",
+  "version": "0.1.0",
+  "description": "Send notifications via ntfy.sh when Claude Code reaches stopping points on remote workstations",
+  "author": {
+    "name": "Jason Hsieh",
+    "email": "jason71319jason@gmail.com"
+  },
+  "keywords": ["notifications", "ntfy", "remote", "alerts"]
+}

@@ -1,0 +1,15 @@
+# Local configuration files (contain sensitive tokens)
+.claude/*.local.md
+*.local.md
+
+# Temporary files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Node modules (if any)
+node_modules/
+
+# Logs
+*.log
