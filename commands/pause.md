@@ -12,15 +12,17 @@ Temporarily disable all Claude Code notifications. Useful when you're actively m
 ## Instructions
 
 1. **Create the pause state file**:
-   - Use Bash tool to create `~/.claude/.notifications-paused`:
+   - Use Bash tool to create pause file in Claude config directory:
      ```bash
-     mkdir -p ~/.claude && touch ~/.claude/.notifications-paused
+     CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+     mkdir -p "${CLAUDE_DIR}" && touch "${CLAUDE_DIR}/.notifications-paused"
      ```
 
 2. **Verify pause file was created**:
    - Check that the file exists:
      ```bash
-     ls -la ~/.claude/.notifications-paused
+     CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+     ls -la "${CLAUDE_DIR}/.notifications-paused"
      ```
 
 3. **Inform user**:
@@ -34,7 +36,7 @@ Temporarily disable all Claude Code notifications. Useful when you're actively m
 When notifications are paused:
 - ✅ Hook scripts still execute (minimal overhead)
 - ✅ send-notification.sh detects pause file and exits silently
-- ✅ No notifications sent to ntfy.sh
+- ✅ No notifications sent to Gotify
 - ✅ Applies to all Claude Code sessions globally
 - ✅ Persists until `/notify:resume` is run
 
@@ -57,4 +59,4 @@ To re-enable notifications, run:
 - Pause state is global - affects all Claude Code sessions
 - If you forget notifications are paused, run `/notify:test` to check
 - The pause file is just a flag - no data is stored in it
-- Safe to manually delete the file: `rm ~/.claude/.notifications-paused`
+- Safe to manually delete the file: `rm "${CLAUDE_CONFIG_DIR:-${HOME}}/.claude/.notifications-paused"`

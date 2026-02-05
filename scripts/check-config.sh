@@ -12,7 +12,9 @@
 set -euo pipefail
 
 # Configuration file path
-CONFIG_FILE="${HOME}/.claude/claude-notifications.local.md"
+# Respect CLAUDE_CONFIG_DIR if set, otherwise use default ~/.claude
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+CONFIG_FILE="${CLAUDE_DIR}/claude-notifications.local.md"
 
 # Check if config file exists
 if [[ ! -f "${CONFIG_FILE}" ]]; then

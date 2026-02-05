@@ -14,7 +14,8 @@ Re-enable Claude Code notifications after they have been paused with `/notify:pa
 1. **Check if notifications are currently paused**:
    - Use Bash tool to check if pause file exists:
      ```bash
-     if [[ -f ~/.claude/.notifications-paused ]]; then
+     CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+     if [[ -f "${CLAUDE_DIR}/.notifications-paused" ]]; then
        echo "Notifications are currently paused"
      else
        echo "Notifications are already active"
@@ -22,15 +23,17 @@ Re-enable Claude Code notifications after they have been paused with `/notify:pa
      ```
 
 2. **Remove the pause state file**:
-   - Delete `~/.claude/.notifications-paused`:
+   - Delete the pause file:
      ```bash
-     rm -f ~/.claude/.notifications-paused
+     CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+     rm -f "${CLAUDE_DIR}/.notifications-paused"
      ```
 
 3. **Verify pause file was removed**:
    - Confirm the file no longer exists:
      ```bash
-     if [[ ! -f ~/.claude/.notifications-paused ]]; then
+     CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+     if [[ ! -f "${CLAUDE_DIR}/.notifications-paused" ]]; then
        echo "✅ Pause file removed successfully"
      else
        echo "❌ Failed to remove pause file"
@@ -53,7 +56,7 @@ Re-enable Claude Code notifications after they have been paused with `/notify:pa
 After resuming:
 - ✅ All hooks start sending notifications again
 - ✅ Applies immediately to all Claude Code sessions
-- ✅ Configuration unchanged (ntfy.sh settings intact)
+- ✅ Configuration unchanged (Gotify settings intact)
 
 ## Use Cases
 
@@ -65,7 +68,8 @@ After resuming:
 
 To check if notifications are active or paused:
 ```bash
-if [[ -f ~/.claude/.notifications-paused ]]; then
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+if [[ -f "${CLAUDE_DIR}/.notifications-paused" ]]; then
   echo "⏸️  Notifications are PAUSED"
 else
   echo "▶️  Notifications are ACTIVE"

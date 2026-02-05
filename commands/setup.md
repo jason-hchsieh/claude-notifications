@@ -88,12 +88,17 @@ Follow these steps to set up notifications:
    - Remove trailing slash from URL if present
    - Ensure token is not empty
 
-5. **Create configuration directory** if needed:
-   ```bash
-   mkdir -p ~/.claude
-   ```
+5. **Determine configuration directory**:
+   - Check if CLAUDE_CONFIG_DIR environment variable is set
+   - If set, use `${CLAUDE_CONFIG_DIR}/.claude/`
+   - Otherwise, use `~/.claude/`
+   - Create directory if needed:
+     ```bash
+     CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+     mkdir -p "${CLAUDE_DIR}"
+     ```
 
-6. **Write configuration file** using Write tool to `~/.claude/claude-notifications.local.md`:
+6. **Write configuration file** using Write tool to `${CLAUDE_DIR}/claude-notifications.local.md`:
    ```yaml
    ---
    gotify_url: "USER_PROVIDED_URL"
@@ -103,7 +108,8 @@ Follow these steps to set up notifications:
 
 7. **Set secure file permissions**:
    ```bash
-   chmod 600 ~/.claude/claude-notifications.local.md
+   CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+   chmod 600 "${CLAUDE_DIR}/claude-notifications.local.md"
    ```
 
 8. **Verify configuration** by running the check script:

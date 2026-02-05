@@ -13,8 +13,10 @@
 set -euo pipefail
 
 # Configuration file path
-CONFIG_FILE="${HOME}/.claude/claude-notifications.local.md"
-PAUSE_FILE="${HOME}/.claude/.notifications-paused"
+# Respect CLAUDE_CONFIG_DIR if set, otherwise use default ~/.claude
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+CONFIG_FILE="${CLAUDE_DIR}/claude-notifications.local.md"
+PAUSE_FILE="${CLAUDE_DIR}/.notifications-paused"
 
 # Check if notifications are paused
 if [[ -f "${PAUSE_FILE}" ]]; then

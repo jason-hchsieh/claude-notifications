@@ -131,7 +131,9 @@ Send a test notification:
 
 ## Configuration
 
-Configuration is stored globally in `~/.claude/claude-notifications.local.md`:
+Configuration is stored in the Claude config directory:
+- Default: `~/.claude/claude-notifications.local.md`
+- Respects `CLAUDE_CONFIG_DIR` environment variable if set
 
 ```yaml
 ---
@@ -145,13 +147,22 @@ gotify_token: "Ahc4eJUerK8MpYG"           # Required: Application token
 You can manually create or edit the configuration file:
 
 ```bash
-mkdir -p ~/.claude
-cat > ~/.claude/claude-notifications.local.md << 'EOF'
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
+mkdir -p "${CLAUDE_DIR}"
+cat > "${CLAUDE_DIR}/claude-notifications.local.md" << 'EOF'
 ---
 gotify_url: "https://gotify.example.com"
 gotify_token: "Ahc4eJUerK8MpYG"
 ---
 EOF
+```
+
+### Custom configuration location
+
+Set `CLAUDE_CONFIG_DIR` to use a custom configuration directory:
+```bash
+export CLAUDE_CONFIG_DIR="/custom/path"
+# Plugin will use /custom/path/.claude/claude-notifications.local.md
 ```
 
 ## How it works
