@@ -33,25 +33,19 @@ parse_yaml() {
 }
 
 # Read configuration
-NTFY_URL=$(parse_yaml "ntfy_url")
-NTFY_TOKEN=$(parse_yaml "ntfy_token")
-NTFY_TOPIC=$(parse_yaml "ntfy_topic")
+GOTIFY_URL=$(parse_yaml "gotify_url")
+GOTIFY_TOKEN=$(parse_yaml "gotify_token")
 
 # Validate required fields
 ERRORS=0
 
-if [[ -z "${NTFY_URL}" ]]; then
-    echo "❌ Missing required field: ntfy_url"
+if [[ -z "${GOTIFY_URL}" ]]; then
+    echo "❌ Missing required field: gotify_url"
     ERRORS=$((ERRORS + 1))
 fi
 
-if [[ -z "${NTFY_TOKEN}" ]]; then
-    echo "❌ Missing required field: ntfy_token"
-    ERRORS=$((ERRORS + 1))
-fi
-
-if [[ -z "${NTFY_TOPIC}" ]]; then
-    echo "❌ Missing required field: ntfy_topic"
+if [[ -z "${GOTIFY_TOKEN}" ]]; then
+    echo "❌ Missing required field: gotify_token"
     ERRORS=$((ERRORS + 1))
 fi
 
@@ -64,8 +58,7 @@ fi
 # All validation passed
 echo "✅ Configuration is valid"
 echo ""
-echo "  Server: ${NTFY_URL}"
-echo "  Topic:  ${NTFY_TOPIC}"
-echo "  Token:  ${NTFY_TOKEN:0:8}... (hidden)"
+echo "  Server: ${GOTIFY_URL}"
+echo "  Token:  ${GOTIFY_TOKEN:0:8}... (hidden)"
 
 exit 0

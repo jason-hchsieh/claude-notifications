@@ -1,13 +1,13 @@
 ---
 name: setup
-description: Interactive setup wizard to configure ntfy.sh notifications
+description: Interactive setup wizard to configure Gotify notifications
 allowed-tools: [Write, Bash, AskUserQuestion]
 argument-hint: ""
 ---
 
 # Setup Notification Configuration
 
-Configure the claude-notifications plugin by creating the settings file with ntfy.sh connection details.
+Configure the claude-notifications plugin by creating the settings file with Gotify connection details.
 
 ## Instructions
 
@@ -18,18 +18,18 @@ Follow these steps to set up notifications:
    - If it exists, inform the user and ask if they want to overwrite it
 
 2. **Gather required information** using AskUserQuestion:
-   - **ntfy.sh server URL**: Ask for the full URL (e.g., `https://ntfy.sh` or `https://ntfy.example.com`)
-     - Suggest `https://ntfy.sh` for public server or their self-hosted URL
-   - **Access token**: Ask for the ntfy.sh access token (starts with `tk_`)
-     - Explain how to get one: [ntfy.sh authentication docs](https://docs.ntfy.sh/publish/#authentication)
-   - **Topic name**: Ask for the topic/channel name (e.g., `claude-notifications`)
-     - Suggest `claude-notifications` as default
-     - Explain that this should be unique and memorable
+   - **Gotify server URL**: Ask for the full URL (e.g., `https://gotify.example.com`)
+     - Must be their self-hosted Gotify instance (no public server)
+     - Should NOT include trailing slash
+   - **Application token**: Ask for the Gotify application token
+     - Explain how to get one: Create an application in Gotify web UI → Settings → Apps → Create Application
+     - Token format: Alphanumeric string (e.g., `Ahc4eJUerK8MpYG`)
+     - Note: This provides built-in user isolation, unlike topic-based systems
 
 3. **Validate inputs**:
    - Ensure URL starts with `https://` (security)
+   - Remove trailing slash from URL if present
    - Ensure token is not empty
-   - Ensure topic name is alphanumeric with hyphens/underscores only
 
 4. **Create configuration directory** if needed:
    ```bash
@@ -39,9 +39,8 @@ Follow these steps to set up notifications:
 5. **Write configuration file** using Write tool to `~/.claude/claude-notifications.local.md`:
    ```yaml
    ---
-   ntfy_url: "USER_PROVIDED_URL"
-   ntfy_token: "USER_PROVIDED_TOKEN"
-   ntfy_topic: "USER_PROVIDED_TOPIC"
+   gotify_url: "USER_PROVIDED_URL"
+   gotify_token: "USER_PROVIDED_TOKEN"
    ---
    ```
 
@@ -69,15 +68,22 @@ Follow these steps to set up notifications:
 
 ## Tips
 
-- If the user doesn't have an ntfy.sh server yet, guide them to:
-  - Use public server: `https://ntfy.sh` (easiest)
-  - Self-host: [Installation guide](https://docs.ntfy.sh/install/)
+- If the user doesn't have a Gotify server yet, guide them to:
+  - Self-host Gotify: [Installation guide](https://gotify.net/docs/install)
+  - Docker: `docker run -p 80:80 -v /var/gotify/data:/app/data gotify/server`
+  - Supports SQLite or PostgreSQL backend
 
-- For access tokens:
-  - Public ntfy.sh: Create account at https://ntfy.sh/account
-  - Self-hosted: Use `ntfy token add` command
+- For application tokens:
+  - Log into Gotify web UI (usually on port 80)
+  - Navigate to Settings → Apps
+  - Click "Create Application"
+  - Enter a name like "Claude Code"
+  - Copy the generated token (shown only once!)
 
-- Topic names should be unique enough to avoid collisions with other users (on public server)
+- Gotify provides built-in user isolation through application tokens
+  - Each application has its own token
+  - No topic-based guessing needed
+  - Better security than public notification services
 
 ## Security Notes
 

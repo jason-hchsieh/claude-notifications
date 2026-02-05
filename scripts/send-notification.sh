@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# send-notification.sh - Send notification via ntfy.sh
+# send-notification.sh - Send notification via Gotify
 #
 # Usage: send-notification.sh <event_type> <priority> <message>
 #
 # Arguments:
 #   event_type: Type of event (question, approval, completion, error, stop)
-#   priority: Priority level (1-5)
+#   priority: Priority level (0-10, Gotify scale)
 #   message: Additional context message
 #
 
@@ -40,50 +40,53 @@ parse_yaml() {
 }
 
 # Read configuration
-NTFY_URL=$(parse_yaml "ntfy_url")
-NTFY_TOKEN=$(parse_yaml "ntfy_token")
-NTFY_TOPIC=$(parse_yaml "ntfy_topic")
+GOTIFY_URL=$(parse_yaml "gotify_url")
+GOTIFY_TOKEN=$(parse_yaml "gotify_token")
 
 # Validate required fields
-if [[ -z "${NTFY_URL}" ]] || [[ -z "${NTFY_TOKEN}" ]] || [[ -z "${NTFY_TOPIC}" ]]; then
+if [[ -z "${GOTIFY_URL}" ]] || [[ -z "${GOTIFY_TOKEN}" ]]; then
     echo "Error: Missing required configuration fields" >&2
-    echo "Required: ntfy_url, ntfy_token, ntfy_topic" >&2
+    echo "Required: gotify_url, gotify_token" >&2
     exit 1
 fi
 
 # Get arguments
 EVENT_TYPE="${1:-stop}"
-PRIORITY="${2:-3}"
+PRIORITY="${2:-5}"  # Gotify uses 0-10 scale, 5 is normal
 MESSAGE="${3:-}"
 
 # Get project name (basename of current working directory)
 PROJECT_NAME=$(basename "$(pwd)")
 
-# Determine title and tags based on event type
+# Determine title based on event type
 case "${EVENT_TYPE}" in
     question)
         TITLE="🔔 Claude has a question"
-        TAGS="loudspeaker"
+        PRIORITY=7
         ;;
     approval)
         TITLE="🔔 Claude needs approval"
-        TAGS="loudspeaker"
+        PRIORITY=7
         ;;
     error)
         TITLE="⚠️ Claude encountered an error"
-        TAGS="warning"
+        PRIORITY=8
         ;;
     completion)
         TITLE="✅ Task completed"
-        TAGS="white_check_mark"
+        PRIORITY=5
         ;;
     stop)
         TITLE="🛑 Claude stopped"
-        TAGS="octagonal_sign"
+        PRIORITY=5
+        ;;
+    test)
+        TITLE="🔔 Test notification"
+        PRIORITY=5
         ;;
     *)
         TITLE="🔔 Claude notification"
-        TAGS="bell"
+        PRIORITY=5
         ;;
 esac
 
@@ -93,13 +96,25 @@ if [[ -n "${MESSAGE}" ]]; then
     BODY="${BODY} ${MESSAGE}"
 fi
 
-# Send notification to ntfy.sh
-curl -s -o /dev/null -w "%{http_code}" \
-    -H "Authorization: Bearer ${NTFY_TOKEN}" \
-    -H "Title: ${TITLE}" \
-    -H "Priority: ${PRIORITY}" \
-    -H "Tags: ${TAGS}" \
-    -d "${BODY}" \
-    "${NTFY_URL}/${NTFY_TOPIC}" > /dev/null 2>&1
+# Escape JSON special characters in title and body
+escape_json() {
+    local str="$1"
+    str="${str//\\/\\\\}"  # Escape backslash
+    str="${str//\"/\\\"}"  # Escape double quote
+    str="${str//$'\n'/\\n}"  # Escape newline
+    str="${str//$'\r'/\\r}"  # Escape carriage return
+    str="${str//$'\t'/\\t}"  # Escape tab
+    echo "$str"
+}
+
+TITLE_ESCAPED=$(escape_json "${TITLE}")
+BODY_ESCAPED=$(escape_json "${BODY}")
+
+# Send notification to Gotify
+curl -s -o /dev/null \
+    -X POST "${GOTIFY_URL}/message?token=${GOTIFY_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "{\"title\":\"${TITLE_ESCAPED}\",\"message\":\"${BODY_ESCAPED}\",\"priority\":${PRIORITY}}" \
+    > /dev/null 2>&1
 
 exit 0
