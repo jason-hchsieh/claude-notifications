@@ -30,7 +30,7 @@ fi
 # - Error messages
 # - Task completions
 
-# Default values
+# Default values (ntfy.sh uses 1-5 scale, 5 is most urgent)
 EVENT_TYPE="question"
 PRIORITY=5  # Urgent by default for questions
 MESSAGE="Needs your attention"

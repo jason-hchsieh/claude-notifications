@@ -1,13 +1,13 @@
 ---
 name: setup
-description: Interactive setup wizard to configure Gotify notifications
+description: Interactive setup wizard to configure ntfy.sh notifications
 allowed-tools: [Write, Bash, AskUserQuestion]
 argument-hint: ""
 ---
 
 # Setup Notification Configuration
 
-Configure the claude-notifications plugin by creating the settings file with Gotify connection details.
+Configure the claude-notifications plugin by creating the settings file with ntfy.sh connection details.
 
 ## Instructions
 
@@ -17,78 +17,30 @@ Follow these steps to set up notifications:
    - Use Bash tool to check if `~/.claude/claude-notifications.local.md` exists
    - If it exists, inform the user and ask if they want to overwrite it
 
-2. **Check if user has Gotify server** using AskUserQuestion:
-   - Ask: "Do you have a Gotify server already running?"
-   - Options:
-     - "Yes, I have a Gotify server" → Skip to step 3
-     - "No, help me set one up" → Proceed to deploy Gotify
+2. **Gather required information** using AskUserQuestion:
+   - **ntfy.sh server URL**: Ask which server to use
+     - Options:
+       - "Use public ntfy.sh server" → Use `https://ntfy.sh`
+       - "Use self-hosted ntfy.sh" → Ask for URL
 
-   **If user needs Gotify deployment**:
-   - Check if Docker is available:
-     ```bash
-     docker --version
-     ```
-   - If Docker is not available, inform user they need to install Docker first:
-     - Linux: `curl -fsSL https://get.docker.com | sh`
-     - Or follow: https://docs.docker.com/engine/install/
+   - **Topic name**: Ask for a topic name
+     - Explain: This is a unique identifier for your notifications (e.g., `my-claude-notifications`)
+     - Should be something hard to guess (acts as security through obscurity)
+     - Will be created automatically on first use
 
-   - Ask user using AskUserQuestion:
-     - **Port**: Which port to expose Gotify on (suggest 8080 if 80 is taken)
-     - **Data directory**: Where to store Gotify data (suggest `~/gotify-data`)
+   - **Access token**: Ask if user wants to use an access token
+     - Optional but recommended for security
+     - Explain: Can be created in ntfy.sh web UI → Settings → Access Tokens
+     - If user doesn't have one, they can leave it empty (notifications will work without it on public server)
 
-   - Deploy Gotify container:
-     ```bash
-     docker run -d \
-       --name gotify \
-       --restart unless-stopped \
-       -p USER_PROVIDED_PORT:80 \
-       -v USER_PROVIDED_DATA_DIR:/app/data \
-       gotify/server
-     ```
-
-   - Wait for container to start (2-3 seconds):
-     ```bash
-     sleep 3
-     ```
-
-   - Check if Gotify is running:
-     ```bash
-     docker ps | grep gotify
-     ```
-
-   - Get default admin credentials:
-     - Username: `admin`
-     - Password: `admin`
-
-   - Inform user:
-     - Gotify is now running at `http://localhost:USER_PROVIDED_PORT`
-     - Default login: admin/admin
-     - **IMPORTANT**: Change the default password immediately!
-     - Open the web UI to:
-       1. Log in with admin/admin
-       2. Change password in Settings → Users
-       3. Create an application in Settings → Apps
-       4. Copy the application token
-
-   - Set GOTIFY_URL for next steps:
-     - Use `http://localhost:USER_PROVIDED_PORT`
-
-3. **Gather required information** using AskUserQuestion:
-   - **Gotify server URL**: Ask for the full URL (e.g., `https://gotify.example.com`)
-     - Must be their self-hosted Gotify instance (no public server)
-     - Should NOT include trailing slash
-   - **Application token**: Ask for the Gotify application token
-     - Explain how to get one: Create an application in Gotify web UI → Settings → Apps → Create Application
-     - Token format: Alphanumeric string (e.g., `Ahc4eJUerK8MpYG`)
-     - Note: This provides built-in user isolation, unlike topic-based systems
-
-4. **Validate inputs**:
+3. **Validate inputs**:
    - Ensure URL starts with `http://` or `https://`
-   - For production, recommend HTTPS (can set up later with reverse proxy)
    - Remove trailing slash from URL if present
-   - Ensure token is not empty
+   - Ensure topic name is not empty
+   - Topic name should be URL-safe (alphanumeric, hyphens, underscores)
+   - Warn if topic name is very short or guessable
 
-5. **Determine configuration directory**:
+4. **Determine configuration directory**:
    - Check if CLAUDE_CONFIG_DIR environment variable is set
    - If set, use `${CLAUDE_CONFIG_DIR}/.claude/`
    - Otherwise, use `~/.claude/`
@@ -98,59 +50,71 @@ Follow these steps to set up notifications:
      mkdir -p "${CLAUDE_DIR}"
      ```
 
-6. **Write configuration file** using Write tool to `${CLAUDE_DIR}/claude-notifications.local.md`:
+5. **Write configuration file** using Write tool to `${CLAUDE_DIR}/claude-notifications.local.md`:
    ```yaml
    ---
-   gotify_url: "USER_PROVIDED_URL"
-   gotify_token: "USER_PROVIDED_TOKEN"
+   ntfy_url: "USER_PROVIDED_URL"
+   ntfy_topic: "USER_PROVIDED_TOPIC"
+   ntfy_token: "USER_PROVIDED_TOKEN_OR_EMPTY"
    ---
    ```
 
-7. **Set secure file permissions**:
+6. **Set secure file permissions**:
    ```bash
    CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
    chmod 600 "${CLAUDE_DIR}/claude-notifications.local.md"
    ```
 
-8. **Verify configuration** by running the check script:
+7. **Verify configuration** by running the check script:
    ```bash
    ${CLAUDE_PLUGIN_ROOT}/scripts/check-config.sh
    ```
 
+8. **Help user subscribe to notifications**:
+   - Inform user they need to subscribe to their topic to receive notifications
+   - Provide options:
+     - **Web**: `https://ntfy.sh/their-topic-name` (open in browser)
+     - **Mobile app**: Download ntfy app, subscribe to topic
+     - **CLI**: `curl -s 'https://ntfy.sh/their-topic-name/json' | jq`
+
 9. **Send test notification** to verify setup:
    ```bash
-   ${CLAUDE_PLUGIN_ROOT}/scripts/send-notification.sh test 5 "Setup completed successfully!"
+   ${CLAUDE_PLUGIN_ROOT}/scripts/send-notification.sh test 3 "Setup completed successfully!"
    ```
 
 10. **Inform user**:
    - Configuration saved successfully
-   - Test notification sent (check your device)
+   - Test notification sent (check your subscribed devices)
    - Notifications are now active
    - Remind them they can use `/notify:pause` and `/notify:resume` to control notifications
    - Suggest running `/notify:test` anytime to verify setup
+   - For security, remind them to use a strong, unique topic name
 
 ## Tips
 
-- If the user doesn't have a Gotify server yet, guide them to:
-  - Self-host Gotify: [Installation guide](https://gotify.net/docs/install)
-  - Docker: `docker run -p 80:80 -v /var/gotify/data:/app/data gotify/server`
-  - Supports SQLite or PostgreSQL backend
+- **Public vs Self-hosted**:
+  - Public ntfy.sh (https://ntfy.sh): Zero setup, free, suitable for most users
+  - Self-hosted: More control, better privacy, requires server
+    - Docker: `docker run -d -p 80:80 binwiederhier/ntfy serve`
+    - [Installation guide](https://docs.ntfy.sh/install)
 
-- For application tokens:
-  - Log into Gotify web UI (usually on port 80)
-  - Navigate to Settings → Apps
-  - Click "Create Application"
-  - Enter a name like "Claude Code"
-  - Copy the generated token (shown only once!)
+- **Topic security**:
+  - Choose a long, unique topic name (minimum 10+ characters)
+  - Avoid using project names, usernames, or other identifiable info
+  - Topics with access tokens are more secure
+  - Example good topic: `claude-abc123xyz789`
 
-- Gotify provides built-in user isolation through application tokens
-  - Each application has its own token
-  - No topic-based guessing needed
-  - Better security than public notification services
+- **Access tokens**:
+  - Log into ntfy.sh web UI
+  - Navigate to Settings → Access Tokens
+  - Click "Create Token"
+  - Grant "Write" permission to your topic
+  - Copy the token (format: `tk_live_XXX`)
 
 ## Security Notes
 
-- Configuration file contains sensitive access token
+- Configuration file contains sensitive credentials (access token)
 - File permissions are set to 600 (owner read/write only)
-- Always use HTTPS URLs
+- Always use HTTPS URLs (https://ntfy.sh uses HTTPS)
 - Never commit `.local.md` files to version control
+- Topics are visible to anyone who knows the name; don't include sensitive info in notifications

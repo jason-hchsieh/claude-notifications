@@ -4,7 +4,7 @@ Send notifications to your local machine when Claude Code (running on a remote w
 
 ## Overview
 
-When running Claude Code on a remote workstation, it's easy to miss when Claude needs input or completes a task. This plugin uses [Gotify](https://gotify.net) to send push notifications to your local device whenever Claude:
+When running Claude Code on a remote workstation, it's easy to miss when Claude needs input or completes a task. This plugin uses [ntfy.sh](https://ntfy.sh) to send push notifications to your local device whenever Claude:
 
 - Asks a question (AskUserQuestion)
 - Requests approval (ExitPlanMode)
@@ -12,13 +12,13 @@ When running Claude Code on a remote workstation, it's easy to miss when Claude 
 - Encounters an error
 - Stops and waits for input
 
-## Why Gotify?
+## Why ntfy.sh?
 
-- **Built-in user isolation**: Each application gets its own token, no topic-based guessing
-- **Self-hosted**: Complete control over your notification server
-- **Secure**: No public topic exposure like ntfy.sh
-- **Simple**: Easy to deploy with Docker
-- **Lightweight**: Minimal resource requirements
+- **Zero setup**: No server to deploy or manage
+- **Lightweight**: Minimal dependencies, works anywhere
+- **Free**: Public server available at ntfy.sh
+- **Optional self-hosting**: Can self-host if desired
+- **Cross-platform**: Web, mobile (iOS/Android), and CLI support
 
 ## Features
 
@@ -26,23 +26,27 @@ When running Claude Code on a remote workstation, it's easy to miss when Claude 
 - **Priority-based alerts**: Urgent for questions, high for errors, normal for completions
 - **Pause/resume** notifications when needed
 - **Easy setup** with interactive configuration
-- **Secure authentication** with application tokens
+- **Multiple access methods**: Web browser, mobile apps, or CLI
 
 ## Prerequisites
 
-1. **Gotify server** (self-hosted)
-   - [Installation guide](https://gotify.net/docs/install)
-   - Docker: `docker run -p 80:80 -v /var/gotify/data:/app/data gotify/server`
-   - Supports SQLite or PostgreSQL
+1. **ntfy.sh server** (public or self-hosted)
+   - Public: Use https://ntfy.sh (no setup required)
+   - Self-hosted: [Installation guide](https://docs.ntfy.sh/install)
+   - Docker: `docker run -d -p 80:80 binwiederhier/ntfy serve`
 
-2. **Application token** (create in Gotify web UI)
-   - Log into Gotify → Settings → Apps → Create Application
-   - Copy the generated token
+2. **A topic name** (unique identifier for your notifications)
+   - Choose any name: `my-claude-notifications`, `claude-xyz`, etc.
+   - Topics are created automatically on first use
 
-3. **Gotify mobile app** (optional but recommended)
-   - [iOS](https://apps.apple.com/app/gotify/id1514458538)
-   - [Android](https://play.google.com/store/apps/details?id=com.github.gotify)
-   - [F-Droid](https://f-droid.org/packages/com.github.gotify/)
+3. **Access token** (optional but recommended)
+   - Create in ntfy.sh web UI: Settings → Access Tokens
+   - Provides security by restricting write access
+
+4. **ntfy mobile app** (optional)
+   - [iOS](https://apps.apple.com/app/ntfy/id1625396347)
+   - [Android](https://play.google.com/store/apps/details?id=io.ntfy.android)
+   - [Web](https://ntfy.sh) - works on any browser
 
 ## Installation
 
@@ -66,15 +70,17 @@ Run the setup command in Claude Code:
 ```
 
 This will prompt you for:
-- Gotify server URL (e.g., `https://gotify.example.com`)
-- Application token (from Gotify web UI)
+- ntfy.sh server URL (use `https://ntfy.sh` for public, or your self-hosted URL)
+- Topic name (e.g., `my-claude-notifications`)
+- Access token (optional, leave empty for public topics)
 
 The configuration is stored in `~/.claude/claude-notifications.local.md`:
 
 ```yaml
 ---
-gotify_url: "https://gotify.example.com"
-gotify_token: "Ahc4eJUerK8MpYG"
+ntfy_url: "https://ntfy.sh"
+ntfy_topic: "my-secret-topic"
+ntfy_token: "tk_live_ABC123xyz"
 ---
 ```
 
@@ -137,8 +143,9 @@ Configuration is stored in the Claude config directory:
 
 ```yaml
 ---
-gotify_url: "https://gotify.example.com"  # Required: Your Gotify server URL
-gotify_token: "Ahc4eJUerK8MpYG"           # Required: Application token
+ntfy_url: "https://ntfy.sh"              # Required: ntfy.sh server URL
+ntfy_topic: "my-secret-topic"            # Required: Your topic name
+ntfy_token: "tk_live_ABC123xyz"          # Optional: Access token for security
 ---
 ```
 
@@ -151,8 +158,9 @@ CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-${HOME}}/.claude"
 mkdir -p "${CLAUDE_DIR}"
 cat > "${CLAUDE_DIR}/claude-notifications.local.md" << 'EOF'
 ---
-gotify_url: "https://gotify.example.com"
-gotify_token: "Ahc4eJUerK8MpYG"
+ntfy_url: "https://ntfy.sh"
+ntfy_topic: "my-secret-topic"
+ntfy_token: "tk_live_ABC123xyz"
 ---
 EOF
 ```
@@ -186,11 +194,9 @@ export CLAUDE_CONFIG_DIR="/custom/path"
    /notify:test
    ```
 
-2. **Verify Gotify server is accessible**:
+2. **Verify ntfy.sh server is accessible**:
    ```bash
-   curl -X POST "https://gotify.example.com/message?token=YOUR_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"title":"Test","message":"Hello","priority":5}'
+   curl -H "Title: Test" -d "Hello" https://ntfy.sh/my-secret-topic
    ```
 
 3. **Check if notifications are paused**:
@@ -199,7 +205,12 @@ export CLAUDE_CONFIG_DIR="/custom/path"
    # If exists, run /notify:resume
    ```
 
-4. **Verify hooks are enabled**:
+4. **Verify you're subscribed to the topic**:
+   - Web: Open `https://ntfy.sh/my-secret-topic` in browser
+   - Mobile app: Ensure you've subscribed to your topic name
+   - Check notification permissions on your device
+
+5. **Verify hooks are enabled**:
    - Check Claude Code is running with plugin enabled
    - Use `claude --debug` to see hook execution
 
@@ -212,13 +223,16 @@ If `/notify:setup` fails or configuration is invalid:
    cat ~/.claude/claude-notifications.local.md
    ```
 
-2. Verify required fields are present: `gotify_url`, `gotify_token`
+2. Verify required fields are present: `ntfy_url`, `ntfy_topic`, `ntfy_token`
 
-3. Test Gotify access manually:
+3. Test ntfy.sh access manually:
    ```bash
-   curl -X POST "https://gotify.example.com/message?token=YOUR_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"title":"Test","message":"Manual test","priority":5}'
+   curl -H "Title: Test" -H "Priority: 3" -d "Manual test" https://ntfy.sh/my-secret-topic
+   ```
+
+4. Verify access token (if using one):
+   ```bash
+   curl -H "Authorization: Bearer YOUR_TOKEN" -d "Test" https://ntfy.sh/my-secret-topic
    ```
 
 ### Permission issues
@@ -232,11 +246,12 @@ chmod +x ~/.claude/plugins/claude-notifications/hooks/scripts/*.sh
 
 ## Security
 
-- **Application tokens**: Stored in `~/.claude/claude-notifications.local.md` (not committed to git)
+- **Access tokens**: Stored in `~/.claude/claude-notifications.local.md` (not committed to git)
 - **File permissions**: Configuration file should be readable only by you (chmod 600)
-- **HTTPS**: Always use HTTPS URLs for Gotify servers
-- **Self-hosted**: Gotify requires self-hosting, providing complete control
-- **User isolation**: Each application token is isolated, no topic guessing needed
+- **HTTPS**: Always use HTTPS URLs (ntfy.sh uses HTTPS by default)
+- **Topic security**: Use a long, unique topic name (avoid easily guessable names)
+- **Access control**: Use access tokens to restrict write access to your topic
+- **Topic privacy**: Topics are visible to anyone who knows the name (don't use sensitive data in messages)
 
 ## License
 
@@ -248,7 +263,8 @@ Issues and pull requests welcome!
 
 ## Resources
 
-- [Gotify Documentation](https://gotify.net/docs/)
-- [Gotify Installation Guide](https://gotify.net/docs/install)
+- [ntfy.sh Documentation](https://docs.ntfy.sh/)
+- [ntfy.sh Installation Guide](https://docs.ntfy.sh/install)
+- [ntfy.sh Android App](https://play.google.com/store/apps/details?id=io.ntfy.android)
+- [ntfy.sh iOS App](https://apps.apple.com/app/ntfy/id1625396347)
 - [Claude Code Plugin Development](https://github.com/anthropics/claude-code)
-- [Gotify Mobile Apps](https://gotify.net/docs/)

@@ -1,6 +1,7 @@
 ---
-gotify_url: "https://gotify.example.com"
-gotify_token: "Ahc4eJUerK8MpYG"
+ntfy_url: "https://ntfy.sh"
+ntfy_topic: "my-secret-topic"
+ntfy_token: "tk_live_ABC123xyz"
 ---
 
 # Claude Notifications Configuration
@@ -16,21 +17,32 @@ This is an example configuration file for the claude-notifications plugin.
    ```
 
 2. Edit the configuration file with your values:
-   - `gotify_url`: Your Gotify server URL
-     - Must be self-hosted: `https://gotify.example.com`
+   - `ntfy_url`: Your ntfy.sh server URL
+     - Use public server: `https://ntfy.sh`
+     - Or self-hosted: `https://ntfy.example.com`
      - Do NOT include trailing slash
 
-   - `gotify_token`: Your application token
-     - Get from: Gotify web UI → Settings → Apps → Create Application
-     - Copy the token shown after creating the application
-     - Token is shown only once, so save it securely
+   - `ntfy_topic`: Your notification topic name
+     - Choose any unique name for your notifications (e.g., `my-claude-notifications`)
+     - Should be something hard to guess (used as unique identifier)
+     - Topics are created automatically when first used
+
+   - `ntfy_token`: Your access token (optional but recommended for security)
+     - Create in ntfy.sh web UI: Settings → Access Tokens → Create Token
+     - Or leave as empty string if using public topic without auth
+     - Provides write access to your topic
 
 3. Secure the file (recommended):
    ```bash
    chmod 600 ~/.claude/claude-notifications.local.md
    ```
 
-4. Test the configuration:
+4. Subscribe to notifications:
+   - **Web**: Open `https://ntfy.sh/my-secret-topic` in browser
+   - **Mobile**: Download ntfy app, subscribe to your topic
+   - **CLI**: `curl -s 'https://ntfy.sh/my-secret-topic/json' | jq`
+
+5. Test the configuration:
    ```
    /notify:test
    ```
@@ -46,7 +58,9 @@ This will guide you through an interactive setup process.
 
 ## Security Notes
 
+- Choose a long, unique topic name (avoid guessable names)
 - This file contains sensitive credentials (access token)
 - Never commit this file to version control
 - Keep file permissions restricted (chmod 600)
 - Use HTTPS URLs only
+- Use access tokens to restrict write access to your topic

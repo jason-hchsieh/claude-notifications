@@ -56,7 +56,7 @@ Re-enable Claude Code notifications after they have been paused with `/notify:pa
 After resuming:
 - ✅ All hooks start sending notifications again
 - ✅ Applies immediately to all Claude Code sessions
-- ✅ Configuration unchanged (Gotify settings intact)
+- ✅ Configuration unchanged (ntfy.sh settings intact)
 
 ## Use Cases
 

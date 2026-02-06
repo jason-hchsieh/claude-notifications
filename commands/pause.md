@@ -36,7 +36,7 @@ Temporarily disable all Claude Code notifications. Useful when you're actively m
 When notifications are paused:
 - ✅ Hook scripts still execute (minimal overhead)
 - ✅ send-notification.sh detects pause file and exits silently
-- ✅ No notifications sent to Gotify
+- ✅ No notifications sent to ntfy.sh
 - ✅ Applies to all Claude Code sessions globally
 - ✅ Persists until `/notify:resume` is run
 

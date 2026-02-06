@@ -34,13 +34,18 @@ Validate the notification configuration and send a test notification to verify e
    - Test notification sent successfully
    - Ask them to check their device (phone, browser, etc.) for the notification
    - If they didn't receive it, troubleshoot:
-     - Check ntfy.sh mobile app is installed and subscribed to the topic
+     - Check ntfy app is installed and subscribed to the topic
      - Verify the topic name matches in both config and app
      - Check server URL is correct and accessible
-     - Verify access token has proper permissions
+     - Verify access token has proper permissions (if using one)
+     - For web notifications, ensure you have the ntfy.sh topic page open
      - Test manually with curl:
        ```bash
-       curl -d "Manual test" -H "Authorization: Bearer YOUR_TOKEN" https://your-server.com/topic-name
+       curl -d "Manual test" -H "Title: Test" https://ntfy.sh/your-topic-name
+       ```
+       With access token:
+       ```bash
+       curl -d "Manual test" -H "Authorization: Bearer YOUR_TOKEN" https://ntfy.sh/your-topic-name
        ```
 
 ## Expected Behavior
@@ -49,7 +54,7 @@ When successful, you should see:
 - ✅ Configuration validation passed
 - Test notification sent
 - Notification appears on subscribed devices with:
-  - Title: "🔔 Claude notification"
+  - Title: "🔔 Test notification"
   - Body: "[project-name] Test notification from Claude Code"
   - Priority: Default (3)
 
@@ -59,11 +64,15 @@ If the test fails:
 
 1. **Configuration errors**: Run `/notify:setup` again
 2. **Network errors**: Check server URL and network connectivity
-3. **Authentication errors**: Verify access token is valid
-4. **Topic errors**: Ensure topic name matches in config and ntfy app subscription
+3. **Authentication errors**: Verify access token is valid (if using one)
+4. **Topic subscription**:
+   - Web: Open `https://ntfy.sh/your-topic-name` in browser
+   - Mobile: Ensure app is subscribed to correct topic
+   - Check that no typos exist between config and subscription
 
 ## Tips
 
 - Run this command after initial setup to verify configuration
 - Run periodically to ensure notifications are still working
 - Use this to debug if automatic notifications stop working
+- If using web notifications, keep the ntfy.sh page open to receive notifications
